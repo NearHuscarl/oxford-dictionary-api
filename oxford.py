@@ -1,6 +1,6 @@
 #!/bin/env python
 
-""" oxford diciontary website api """
+""" oxford diciontary api """
 
 import os
 import logging
