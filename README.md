@@ -209,7 +209,7 @@ Word.definitions_examples()
 
 ### Extra Examples
 
-Return extra examples (not belong to particular definitons)
+Return extra examples (not belong to any particular definitons)
 
 ```python
 Word.extra_examples()
@@ -315,13 +315,16 @@ Word.info()
 ```
 
 ```python
-# show all of the following info:
-#  keyword
-#  wordform
-#  pronunciations
-#  reference
-#  definitions + examples
-#  extra_examples
-#  idioms
-#  other_results
+# Display the following info:
+# keyword
+# wordform
+# pronunciations
+# reference
+# definitions + examples
+# extra_examples
+# idioms
+# other_results
 ```
+
+## License
+**[BSD 3-Clauses](https://github.com/NearHuscarl/oxford-dictionary-api/blob/master/LICENSE.md)**
