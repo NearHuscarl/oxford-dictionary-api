@@ -21,6 +21,8 @@ class BlockAll(cookiejar.CookiePolicy):
 
 class Word(object):
 	""" retrive word info from oxford dictionary website """
+	other_results_selector = '#rightcolumn #relatedentries'
+
 	entry_selector = '#entryContent > .entry'
 
 	br_pronounce_selector = '[class="pron-gs ei-g"] [geo=br] .phon'
@@ -79,6 +81,80 @@ class Word(object):
 		cls.delete('[title="Oxford Collocations Dictionary"]')
 
 	@classmethod
+	def other_results(cls):
+		""" get similar words, idioms, phrases...
+
+		Sample html:
+			<div id='relatedentries'>
+				<dt>All matches</dt>
+				<dd>
+					<a href='link'>
+						<span>word<pos>wordform</pos></span>
+					</a>
+					<a href='link'>...</a>
+					<a href='link'>...</a>
+				</dd>
+				<dt>All matches</dt>
+				<dd>..</dd>
+				<dt>Phrasal verbs</dt>
+				<dd>..</dd>
+			</div>
+
+		Return: {
+				'All matches': [
+					{'word1': word1, 'reference1': reference1, 'wordform1': wordform1},
+					{'word2': word2, 'reference2': reference2, 'wordform2': wordform2}
+					...
+					]
+				'Phrasal verbs': [
+					{'word1': word1, 'reference1': reference1, 'wordform1': wordform1},
+					{'word2': word2, 'reference2': reference2, 'wordform2': wordform2}
+					...
+					]
+				...
+				}
+		"""
+		info = []
+
+		rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
+
+		# there can be multiple other results table like All matches, Phrasal verbs, Idioms,...
+		header_tags = rightcolumn_tags.select('dt')
+		other_results_tags = rightcolumn_tags.select('dd')
+
+		# loop each other result table
+		for header_tag, other_results_tag in zip(header_tags, other_results_tags):
+			header = header_tag.text
+
+			other_results = [tag.find_all(text=True) for tag in other_results_tag.select('span')]
+			references = [cls.extract_keyword(tag.attrs['href'])
+					for tag in other_results_tag.select('li a')]
+
+			results = []
+			for other_result, reference in zip(other_results, references):
+				result = {}
+				result['text'] = other_result[0].strip()
+				result['reference'] = reference
+
+				try:
+					result['wordform'] = other_result[1].strip()
+				except IndexError:
+					pass
+
+				results.append(result)
+
+			info.append({header: results})
+
+		return info
+
+	@classmethod
+	def other_wordform(cls):
+		""" get other word form (verb, noun...) of a word """
+		if cls.soup_data is None:
+			return None
+		pass
+
+	@classmethod
 	def keyword(cls):
 		""" get keyword. if a word has definitions in 2 seperate pages (multiple wordform)
 		it will return 'word_1' and 'word_2' depend on which page it's on """
@@ -116,7 +192,8 @@ class Word(object):
 		br_audio_url = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
 		am_audio_url = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
 
-		return {britain[0]: {
+		return {
+				britain[0]: {
 					'ipa': britain[1],
 					'url': br_audio_url
 				},
@@ -358,7 +435,8 @@ class Word(object):
 				'reference': cls.reference(),
 				'definitions': cls.definitions_examples(),
 				'extra_examples': cls.extra_examples(),
-				'idioms': cls.idioms()
+				'idioms': cls.idioms(),
+				'other_results': cls.other_results()
 				}
 
 		if word['reference'] is None:
@@ -384,3 +462,4 @@ if __name__ == '__main__':
 # synonym
 # dis-g
 # check amount if noun
+# otherword()
