@@ -10,7 +10,7 @@ from http import cookiejar
 import requests
 from bs4 import BeautifulSoup as soup
 
-logpath = os.path.join(os.environ['HOME'], '.cache', 'oxford_scraping.log')
+logpath = 'oxford_scraping.log'
 logging.basicConfig(filename=logpath, level=logging.DEBUG)
 
 class BlockAll(cookiejar.CookiePolicy):
@@ -439,7 +439,7 @@ class Word(object):
 				'other_results': cls.other_results()
 				}
 
-		if word['reference'] is None:
+		if not word['reference']:
 			word.pop('reference', None)
 
 		if word['wordform'] == 'noun':
