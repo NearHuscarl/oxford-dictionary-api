@@ -21,19 +21,18 @@ class BlockAll(cookiejar.CookiePolicy):
 
 class Word(object):
 	""" retrive word info from oxford dictionary website """
-	other_results_selector = '#rightcolumn #relatedentries'
-
 	entry_selector = '#entryContent > .entry'
+	header_selector = '.top-container'
+
+	title_selector = header_selector + ' h2'
+	wordform_selector = header_selector + ' .webtop-g .pos'
+	property_global_selector = header_selector + ' .gram-g'
+	definition_global_selector = header_selector + ' .def'
 
 	br_pronounce_selector = '[class="pron-gs ei-g"] [geo=br] .phon'
 	am_pronounce_selector = '[class="pron-gs ei-g"] [geo=n_am] .phon'
 	br_pronounce_audio_selector = '[class="pron-gs ei-g"] [geo=br] [data-src-ogg]'
 	am_pronounce_audio_selector = '[class="pron-gs ei-g"] [geo=n_am] [data-src-ogg]'
-
-	wordform_selector = '.top-container .webtop-g .pos'
-	property_global_selector = '.top-container .gram-g'
-	definition_global_selector = '.top-container .def'
-	header_selector = '.top-container'
 
 	namespaces_selector = '.h-g > .sn-gs'
 	example_selector = '.h-g > .sn-gs > .sn-g > .x-gs .x'
@@ -42,6 +41,8 @@ class Word(object):
 	extra_examples_selector = '.res-g [title="Extra examples"] .x-gs .x'
 	phrasal_verbs_selector = '.pv-gs a'
 	idioms_selector = '.idm-gs > .idm-g'
+
+	other_results_selector = '#rightcolumn #relatedentries'
 
 	soup_data = None
 
@@ -149,11 +150,36 @@ class Word(object):
 		return info
 
 	@classmethod
-	def other_wordform(cls):
-		""" get other word form (verb, noun...) of a word """
+	def other_keyword(cls):
+		""" get other word form (verb, noun...) of a word
+		Return: a list of keywords in other form
+
+		Example word: 'man'
+		Return ['man_2', 'man_3']
+		"""
 		if cls.soup_data is None:
 			return None
-		pass
+
+		word = cls.word()
+		other_keyword = []
+
+		rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
+		allmatches_tags = rightcolumn_tags.select_one('dd') # get the first dd only
+
+		for allmatches_tag in allmatches_tags.select('li'):
+			other_match = allmatches_tag.select('span')[0].find(text=True).strip() # get first word only
+			if word == other_match:
+				keyword = cls.extract_keyword(allmatches_tag.select('a')[0].attrs['href'])
+				other_keyword.append(keyword)
+
+		return other_keyword
+
+	@classmethod
+	def word(cls):
+		""" get word name """
+		if cls.soup_data is None:
+			return None
+		return cls.soup_data.select(cls.title_selector)[0].text
 
 	@classmethod
 	def keyword(cls):
@@ -442,6 +468,8 @@ class Word(object):
 		""" return all info about a word """
 		word = {
 				'keyword': cls.keyword(),
+				'other_keyword': cls.other_keyword(),
+				'word': cls.word(),
 				'wordform': cls.wordform(),
 				'pronunciations': cls.pronunciations(),
 				'reference': cls.reference(),
@@ -451,6 +479,9 @@ class Word(object):
 				'idioms': cls.idioms(),
 				'other_results': cls.other_results()
 				}
+
+		if not word['other_keyword']:
+			word.pop('other_keyword', None)
 
 		if not word['reference']:
 			word.pop('reference', None)
@@ -471,8 +502,6 @@ if __name__ == '__main__':
 # vim: nofoldenable
 
 # TODO:
-# external link proper handling
-# synonym
 # beautify
 # dis-g
 # otherword()
