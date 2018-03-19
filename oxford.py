@@ -103,13 +103,13 @@ class Word(object):
 
 		Return: {
 				'All matches': [
-					{'word1': word1, 'reference1': reference1, 'wordform1': wordform1},
-					{'word2': word2, 'reference2': reference2, 'wordform2': wordform2}
+					{'word1': word1, 'keyword1': keyword1, 'wordform1': wordform1},
+					{'word2': word2, 'keyword2': keyword2, 'wordform2': wordform2}
 					...
 					]
 				'Phrasal verbs': [
-					{'word1': word1, 'reference1': reference1, 'wordform1': wordform1},
-					{'word2': word2, 'reference2': reference2, 'wordform2': wordform2}
+					{'word1': word1, 'keyword1': keyword1, 'wordform1': wordform1},
+					{'word2': word2, 'keyword2': keyword2, 'wordform2': wordform2}
 					...
 					]
 				...
@@ -128,14 +128,14 @@ class Word(object):
 			header = header_tag.text
 
 			other_results = [tag.find_all(text=True) for tag in other_results_tag.select('span')]
-			references = [cls.extract_keyword(tag.attrs['href'])
+			keywords = [cls.extract_keyword(tag.attrs['href'])
 					for tag in other_results_tag.select('li a')]
 
 			results = []
-			for other_result, reference in zip(other_results, references):
+			for other_result, keyword in zip(other_results, keywords):
 				result = {}
 				result['text'] = other_result[0].strip()
-				result['reference'] = reference
+				result['keyword'] = keyword
 
 				try:
 					result['wordform'] = other_result[1].strip()
@@ -225,18 +225,18 @@ class Word(object):
 	def get_references(cls, tags):
 		""" get info about references to other page
 		Argument: soup.select(<selector>)
-		Return: {<keyword>: <word>, <keyword2>: <word2>, ...}
+		Return: [{'keyword': <keyword>, 'text': <word>}, {'keyword': <keyword2>, 'text': <word2>}, ...]
 		"""
 		if cls.soup_data is None:
 			return None
 
-		reference = {}
+		references = []
 		for tag in tags.select('.xr-gs a'): # see also <external link>
 			keyword = cls.extract_keyword(tag.attrs['href'])
 			word = tag.text
-			reference[keyword] = word
+			references.append({'keyword': keyword, 'text': word})
 
-		return reference
+		return references
 
 	@classmethod
 	def reference(cls):
@@ -463,6 +463,6 @@ if __name__ == '__main__':
 # TODO:
 # external link proper handling
 # synonym
+# beautify
 # dis-g
-# check amount if noun
 # otherword()
