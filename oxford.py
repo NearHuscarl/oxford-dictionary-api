@@ -168,7 +168,11 @@ class Word(object):
 		""" return wordform of word (verb, noun, adj...) """
 		if cls.soup_data is None:
 			return None
-		return cls.soup_data.select(cls.wordform_selector)[0].text
+
+		try:
+			return cls.soup_data.select(cls.wordform_selector)[0].text
+		except IndexError:
+			return None
 
 	@classmethod
 	def property_global(cls):
@@ -187,19 +191,25 @@ class Word(object):
 		if cls.soup_data is None:
 			return None
 
-		britain = cls.soup_data.select(cls.br_pronounce_selector)[0].text.replace('/', ' ').split()
-		america = cls.soup_data.select(cls.am_pronounce_selector)[0].text.replace('/', ' ').split()
+		try:
+			br_prefix, br_ipa = cls.soup_data.select(cls.br_pronounce_selector)[0].text.replace('/', ' ').split()
+			am_prefix, am_ipa = cls.soup_data.select(cls.am_pronounce_selector)[0].text.replace('/', ' ').split()
+		except IndexError:
+			br_prefix, br_ipa = None, None
+			am_prefix, am_ipa = None, None
 
 		br_audio_url = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
 		am_audio_url = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
 
 		return {
-				britain[0]: {
-					'ipa': britain[1],
+				'britain': {
+					'prefix': br_prefix,
+					'ipa': br_ipa,
 					'url': br_audio_url
 				},
-				america[0]: {
-					'ipa': america[1],
+				'america': {
+					'prefix': am_prefix,
+					'ipa': am_ipa,
 					'url': am_audio_url
 					}
 				}
