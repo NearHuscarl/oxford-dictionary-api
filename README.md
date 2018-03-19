@@ -2,6 +2,7 @@
 
 ## Installation
 * `pip install requests`
+* `pip install beautifulsoup4`
 * Download [oxford.py](https://github.com/NearHuscarl/oxford-dictionary-api/blob/master/oxford.py)
 
 ## Usage
