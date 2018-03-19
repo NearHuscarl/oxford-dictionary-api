@@ -31,7 +31,8 @@ class Word(object):
 	am_pronounce_audio_selector = '[class="pron-gs ei-g"] [geo=n_am] [data-src-ogg]'
 
 	wordform_selector = '.top-container .webtop-g .pos'
-	amount_selector = '.top-container .gram-g'
+	property_global_selector = '.top-container .gram-g'
+	definition_global_selector = '.top-container .def'
 	header_selector = '.top-container'
 
 	namespaces_selector = '.h-g > .sn-gs'
@@ -170,13 +171,13 @@ class Word(object):
 		return cls.soup_data.select(cls.wordform_selector)[0].text
 
 	@classmethod
-	def amount(cls):
-		""" return global amount (apply to all definitions) """
+	def property_global(cls):
+		""" return global property (apply to all definitions) """
 		if cls.soup_data is None:
 			return None
 
 		try:
-			return cls.soup_data.select(cls.amount_selector)[0].text
+			return cls.soup_data.select(cls.property_global_selector)[0].text
 		except IndexError:
 			return None
 
@@ -290,14 +291,15 @@ class Word(object):
 		Each namespace can have one or many definitions
 		Each definitions can have one, many or no examples
 
-		A noun can have amount attribute (countable/uncountable/singular/plural)
+		Some words can have specific property
+		(transitive/intransitive/countable/uncountable/singular/plural...)
 		A verb can have phrasal verbs
 
 		Sample html:
 			<span class='sn-gs'>                       <!-- namespace + definitions + examples -->
 				<span class='shcut'></span>            <!-- namespace -->
 				<span class='sn-g'>                    <!-- definition + examples -->
-					<span class='gram-g'>...</span>    <!-- amount (noun only) -->
+					<span class='gram-g'>...</span>    <!-- property (countable, transitive, plural,...) -->
 					<span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
 					<span class='def'>...</span>       <!-- definition -->
 					<span class='x-gs'>                <!-- examples -->
@@ -331,10 +333,10 @@ class Word(object):
 			for definition_example_tag in definition_example_tags:
 				definition = {}
 
-				try: # noun have amount attribute indicate countable/uncountable/singular/plural...
-					definition['amount'] = definition_example_tag.select('.gram-g')[0].text
+				try: # property (countable, transitive, plural,...)
+					definition['property'] = definition_example_tag.select('.gram-g')[0].text
 				except IndexError:
-					definition.pop('amount', None)
+					definition.pop('property', None)
 
 				try: # label: (old-fashioned), (informal), (saying)...
 					definition['label'] = definition_example_tag.select('.label-g')[0].text
@@ -433,6 +435,7 @@ class Word(object):
 				'wordform': cls.wordform(),
 				'pronunciations': cls.pronunciations(),
 				'reference': cls.reference(),
+				'property': cls.property_global(),
 				'definitions': cls.definitions_examples(),
 				'extra_examples': cls.extra_examples(),
 				'idioms': cls.idioms(),
@@ -442,8 +445,8 @@ class Word(object):
 		if not word['reference']:
 			word.pop('reference', None)
 
-		if word['wordform'] == 'noun':
-			word['amount'] = cls.amount()
+		if not word['property']:
+			word.pop('property', None)
 
 		if word['wordform'] == 'verb':
 			word['phrasal_verbs'] = cls.phrasal_verbs()
