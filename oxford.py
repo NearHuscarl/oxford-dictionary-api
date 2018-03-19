@@ -372,12 +372,12 @@ class Word(object):
 				try: # property (countable, transitive, plural,...)
 					definition['property'] = definition_example_tag.select('.gram-g')[0].text
 				except IndexError:
-					definition.pop('property', None)
+					pass
 
 				try: # label: (old-fashioned), (informal), (saying)...
 					definition['label'] = definition_example_tag.select('.label-g')[0].text
 				except IndexError:
-					definition.pop('label', None)
+					pass
 
 				definition['reference'] = cls.get_references(definition_example_tag)
 				if not definition['reference']:
@@ -450,7 +450,7 @@ class Word(object):
 				try: # label: (old-fashioned), (informal), (saying)...
 					definition['label'] = idiom_tag.select('.label-g')[0].text
 				except IndexError:
-					definition.pop('label', None)
+					pass
 
 				definition['reference'] = cls.get_references(definition_tag)
 				if not definition['reference']:
