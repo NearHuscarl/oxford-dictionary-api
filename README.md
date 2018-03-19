@@ -192,7 +192,7 @@ Word.definitions_examples()
                    'definition': 'to run as a sport',
                    'examples': ['She used to run when she was at college.',
                                 'I often go running before work.']}],
-                   'namespace': 'move fast on foot'},
+  'namespace': 'move fast on foot'},
  {'definitions': [{'amount': '[intransitive, transitive]',
                    'definition': 'to take part in a race',
                    'examples': ['He will be running in the 100 metres tonight.',
@@ -206,7 +206,7 @@ Word.definitions_examples()
                    'definition': 'to make a race take place',
                    'examples': ['The Derby will be run in spite of the bad '
                                 'weather.']}],
-                   'namespace': 'race'},
+ 'namespace': 'race'},
 ```
 
 ### Extra Examples
