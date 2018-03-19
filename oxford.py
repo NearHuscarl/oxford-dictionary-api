@@ -337,6 +337,7 @@ class Word(object):
 				<span class='sn-g'>                    <!-- definition + examples -->
 					<span class='gram-g'>...</span>    <!-- property (countable, transitive, plural,...) -->
 					<span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
+					<span class='dis-g'>...</span>     <!-- refer to something (of people, of thing,...) -->
 					<span class='def'>...</span>       <!-- definition -->
 					<span class='x-gs'>                <!-- examples -->
 						<span class='x'>               <!-- example -->
@@ -379,6 +380,11 @@ class Word(object):
 				except IndexError:
 					pass
 
+				try: # refer to something (of people, of thing,...)
+					definition['refer'] = definition_example_tag.select('.dis-g')[0].text
+				except IndexError:
+					pass
+
 				definition['reference'] = cls.get_references(definition_example_tag)
 				if not definition['reference']:
 					definition.pop('reference', None)
@@ -414,6 +420,7 @@ class Word(object):
 				</span>
 				<span class='sn-g'>                    <!-- definition + examples -->
 					<span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
+					<span class='dis-g'>...</span>     <!-- refer to something (of people, of thing,...) -->
 					<span class='def'>...</span>       <!-- definition -->
 					<span class='x-gs'>                <!-- examples -->
 						<span class='x'>               <!-- example -->
@@ -453,7 +460,12 @@ class Word(object):
 					pass # sometimes, an idiom just reference to other page without having a definition
 
 				try: # label: (old-fashioned), (informal), (saying)...
-					definition['label'] = idiom_tag.select('.label-g')[0].text
+					definition['label'] = definition_tag.select('.label-g')[0].text
+				except IndexError:
+					pass
+
+				try: # refer to something (of people, of thing,...)
+					definition['refer'] = definition_tag.select('.dis-g')[0].text
 				except IndexError:
 					pass
 
