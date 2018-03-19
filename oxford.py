@@ -3,15 +3,11 @@
 """ oxford diciontary api """
 
 import os
-import logging
 import urllib.request
 from http import cookiejar
 
 import requests
 from bs4 import BeautifulSoup as soup
-
-logpath = 'oxford_scraping.log'
-logging.basicConfig(filename=logpath, level=logging.DEBUG)
 
 class BlockAll(cookiejar.CookiePolicy):
 	""" policy to block cookies """
@@ -72,9 +68,9 @@ class Word(object):
 			if page_html.status_code == 200:
 				cls.soup_data = soup(page_html.content, 'html.parser')
 			else:
-				logging.debug('Requests failed. Status code: {}'.format(page_html.status_code))
+				print('Requests failed. Status code: {}'.format(page_html.status_code))
 		except requests.Timeout as error:
-			logging.debug('Requests failed. Timeout: {}'.format(error))
+			print('Requests failed. Timeout: {}'.format(error))
 
 		if cls.soup_data is None:
 			return
@@ -218,8 +214,11 @@ class Word(object):
 			return None
 
 		try:
-			br_prefix, br_ipa = cls.soup_data.select(cls.br_pronounce_selector)[0].text.replace('/', ' ').split()
-			am_prefix, am_ipa = cls.soup_data.select(cls.am_pronounce_selector)[0].text.replace('/', ' ').split()
+			britain_pron_tag = cls.soup_data.select(cls.br_pronounce_selector)[0]
+			america_pron_tag = cls.soup_data.select(cls.am_pronounce_selector)[0]
+
+			br_prefix, br_ipa = britain_pron_tag.text.replace('/', ' ').split()
+			am_prefix, am_ipa = america_pron_tag.text.replace('/', ' ').split()
 		except IndexError:
 			br_prefix, br_ipa = None, None
 			am_prefix, am_ipa = None, None
@@ -510,13 +509,4 @@ class Word(object):
 
 		return word
 
-if __name__ == '__main__':
-	pass
-	# Word.get('time')
-	# Word.info()
-
 # vim: nofoldenable
-
-# TODO:
-# beautify
-# otherword()
