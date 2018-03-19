@@ -383,7 +383,12 @@ class Word(object):
 				if not definition['reference']:
 					definition.pop('reference', None)
 
-				definition['definition'] = definition_example_tag.select('.def')[0].text
+				try: # label: (old-fashioned), (informal), (saying)...
+					definition['definition'] = definition_example_tag.select('.def')[0].text
+				except IndexError:
+					# sometimes, an idiom just reference to other page without having a definition
+					pass
+
 				definition['examples'] = [example_tag.text
 						for example_tag in definition_example_tag.select('.x-gs .x')]
 
