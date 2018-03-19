@@ -389,10 +389,9 @@ class Word(object):
 				if not definition['reference']:
 					definition.pop('reference', None)
 
-				try: # label: (old-fashioned), (informal), (saying)...
+				try: # sometimes, an idiom just reference to other page without having a definition
 					definition['definition'] = definition_example_tag.select('.def')[0].text
 				except IndexError:
-					# sometimes, an idiom just reference to other page without having a definition
 					pass
 
 				definition['examples'] = [example_tag.text
@@ -491,7 +490,7 @@ class Word(object):
 				'pronunciations': cls.pronunciations(),
 				'reference': cls.reference(),
 				'property': cls.property_global(),
-				'definitions': cls.definitions_examples(),
+				'definitions_examples': cls.definitions_examples(),
 				'extra_examples': cls.extra_examples(),
 				'idioms': cls.idioms(),
 				'other_results': cls.other_results()
@@ -520,5 +519,4 @@ if __name__ == '__main__':
 
 # TODO:
 # beautify
-# dis-g
 # otherword()
