@@ -1,5 +1,11 @@
 # oxford-dictionary-api
 
+## Requirements
+* python3
+* python modules:
+  * requests
+  * beautifulsoup4
+
 ## Installation
 * `pip install requests`
 * `pip install beautifulsoup4`
