@@ -1,6 +1,7 @@
 # oxford-dictionary-api
 
 ## Installation
+* `pip install requests`
 * Download [oxford.py](https://github.com/NearHuscarl/oxford-dictionary-api/blob/master/oxford.py)
 
 ## Usage
