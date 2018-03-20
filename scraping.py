@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import time
+import traceback
 import urllib.request
 
 import colorama
@@ -154,8 +155,12 @@ def get_not_found_words():
 	return read(path)
 
 def get_downloaded_words():
-	""" get list of words whose data have been downloaded before """
-	return {file.strip('.json').split('_')[0].lower(): None
+	""" get list of words whose data have been downloaded before
+	'abc.json' -> 'abc'
+	'abc_1.json' -> 'abc'
+	'ABC.D.json' -> 'abc.d'
+	"""
+	return {os.path.splitext(file)[0].split('_')[0].lower(): None
 			for file in os.listdir(DEF_PATH) if os.path.isfile(os.path.join(DEF_PATH, file))}
 
 def get_wordlist(filename):
