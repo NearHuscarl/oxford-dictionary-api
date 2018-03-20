@@ -114,7 +114,10 @@ class Word(object):
 		"""
 		info = []
 
-		rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
+		try:
+			rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
+		except IndexError:
+			return None
 
 		# there can be multiple other results table like All matches, Phrasal verbs, Idioms,...
 		header_tags = rightcolumn_tags.select('dt')
@@ -159,7 +162,11 @@ class Word(object):
 		word = cls.word()
 		other_keyword = []
 
-		rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
+		try:
+			rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
+		except IndexError: # dont have other match table
+			return None
+
 		allmatches_tags = rightcolumn_tags.select_one('dd') # get the first dd only
 
 		for allmatches_tag in allmatches_tags.select('li'):
@@ -497,6 +504,9 @@ class Word(object):
 
 		if not word['property']:
 			word.pop('property', None)
+
+		if not word['other_results']:
+			word.pop('other_results', None)
 
 		if word['wordform'] == 'verb':
 			word['phrasal_verbs'] = cls.phrasal_verbs()
