@@ -217,8 +217,8 @@ class Word(object):
 			britain_pron_tag = cls.soup_data.select(cls.br_pronounce_selector)[0]
 			america_pron_tag = cls.soup_data.select(cls.am_pronounce_selector)[0]
 
-			br_prefix, br_ipa = britain_pron_tag.text.replace('/', ' ').split()
-			am_prefix, am_ipa = america_pron_tag.text.replace('/', ' ').split()
+			br_prefix, br_ipa = britain_pron_tag.text.split('//')[:-1]
+			am_prefix, am_ipa = america_pron_tag.text.split('//')[:-1]
 		except IndexError:
 			br_prefix, br_ipa = None, None
 			am_prefix, am_ipa = None, None
