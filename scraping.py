@@ -136,7 +136,7 @@ def update_corrupted_words(word):
 	path = os.path.join(os.getcwd(), 'cache', 'corrupted_words.txt')
 	put(word, path)
 
-def read(filename):
+def read(filename, isdict=False):
 	""" read content from a file
 	return: a dictionary of key-value where key is content in a line in string
 	and value is None
@@ -147,12 +147,14 @@ def read(filename):
 	with open(filename, 'r') as file:
 		words = file.readlines()
 
-	return {word.strip(): None for word in words}
+	if isdict:
+		return {word.strip(): None for word in words}
+	return [word.strip() for word in words]
 
 def get_not_found_words():
 	""" update not found words (in oxford diciontary) """
 	path = os.path.join(os.getcwd(), 'cache', 'not_found_words.txt')
-	return read(path)
+	return read(path, isdict=True)
 
 def get_downloaded_words():
 	""" get list of words whose data have been downloaded before
