@@ -226,10 +226,11 @@ def extract_data(word):
 		save(word_data, DEF_PATH)
 
 	except Exception as error:
-		print("something failed: '{}'".format(error))
-		LOG.debug("something failed: '%s'", error)
+		print(traceback.format_exc())
+		LOG.debug(traceback.format_exc())
 
 		update_corrupted_words(word)
+		return (1, None)
 	else:
 		return (0, word_data['other_keyword'])
 
