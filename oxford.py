@@ -164,7 +164,7 @@ class Word(object):
 		try:
 			rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
 		except IndexError: # dont have other match table
-			return None
+			return []
 
 		allmatches_tags = rightcolumn_tags.select_one('dd') # get the first dd only
 
