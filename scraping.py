@@ -5,11 +5,24 @@
 import json
 import logging
 import os
+import sys
 import time
 import urllib.request
 
+import colorama
 from exceptions import ConnectionError, HTTPError, Timeout
 from oxford import Word
+
+# init is required on windows
+if sys.platform != 'linux': # windows or other
+	colorama.init()
+
+# setup color
+GREEN = colorama.Fore.GREEN
+MAGENTA = colorama.Fore.MAGENTA
+BLUE = colorama.Fore.BLUE
+YELLOW = colorama.Fore.YELLOW
+RESET = colorama.Fore.RESET
 
 # disable requests logging
 logging.getLogger("requests").setLevel(logging.CRITICAL)
@@ -50,6 +63,9 @@ def settup_logger(name, logfile, level=logging.INFO):
 
 	return logger
 
+def quote(string):
+	""" string -> 'string' """
+	return "'" + str(string) + "'"
 
 # pylint: disable=invalid-name
 LOG_PATH = os.path.join(os.getcwd(), 'cache', 'scraping.log')
@@ -89,7 +105,7 @@ def download(url, directory):
 def save(word, path):
 	""" write word data in json format with filename is word value """
 	if word is not None:
-		filename = word['word']
+		filename = word['keyword']
 		cache_path = os.path.join(path, filename + '.json')
 		touch(cache_path)
 
@@ -97,7 +113,7 @@ def save(word, path):
 			json.dump(word, file)
 
 def put(line, filename):
-	""" append a line to a file """
+	""" append a line to filename """
 	if not os.path.isfile(filename):
 		touch(filename)
 
@@ -139,7 +155,7 @@ def get_not_found_words():
 
 def get_downloaded_words():
 	""" get list of words whose data have been downloaded before """
-	return {file.strip('.json').lower(): None
+	return {file.strip('.json').split('_')[0].lower(): None
 			for file in os.listdir(DEF_PATH) if os.path.isfile(os.path.join(DEF_PATH, file))}
 
 def get_wordlist(filename):
@@ -217,27 +233,30 @@ def scrap(words, reference=True):
 	reference (bool): scrap other wordform of a word
 	"""
 	for word in words:
-		print("scraping '{}'...".format(word))
+		print('scraping ' + GREEN + quote(word) + RESET + '...')
 
 		if word in DOWNLOADED_WORDS:
-			print("'{}' has been downloaded. Skipping to next word".format(word))
+			print(GREEN + quote(word) + RESET + 'has been ' + YELLOW + 'downloaded' + RESET + '. Skipping to next word')
 			continue
 		elif word in NOT_FOUND_WORDS:
-			print("'{}' not found. Skipping to next word".format(word))
+			print(GREEN + quote(word) + YELLOW + ' not found' + RESET + '. Skipping to next word')
 			continue
 		else: # valid word. Downloading...
+			print('valid word: ' + GREEN + quote(word) + RESET + '. Ready to ' + BLUE + 'download' + RESET)
 			exitcode, others = extract_data(word)
 
-		if exitcode == 1: # Word not found. Skip to next word immediately
+		if exitcode == 1: # Word not found. Skip 1s only
+			time.sleep(1)
 			continue
 		elif exitcode == 2: # Connection error
 			time.sleep(10)
+			continue
 		else: # success
-			print("scrap reference words: '{}'".format(others))
 			if others and reference is True:
+				print('scrap ' + BLUE + 'reference' +  RESET + ' words: ' + GREEN + quote(others) + RESET)
 				scrap(others, reference=False)
 
-		print('cooldown...') # cooldown time: 4s
+		print(MAGENTA + 'cooldown...' + RESET) # cooldown time: 4s
 		if extract_data.elapsed < 4:
 			time.sleep(4 - extract_data.elapsed)
 
