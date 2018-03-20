@@ -496,9 +496,6 @@ class Word(object):
 				'other_results': cls.other_results()
 				}
 
-		if not word['other_keyword']:
-			word.pop('other_keyword', None)
-
 		if not word['reference']:
 			word.pop('reference', None)
 
