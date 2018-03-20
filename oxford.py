@@ -67,8 +67,10 @@ class Word(object):
 				cls.soup_data = soup(page_html.content, 'html.parser')
 			else:
 				print('Requests failed. Status code: {}'.format(page_html.status_code))
+				cls.soup_data = None
 		except requests.Timeout as error:
 			print('Requests failed. Timeout: {}'.format(error))
+			cls.soup_data = None
 
 		if cls.soup_data is None:
 			return
@@ -470,6 +472,9 @@ class Word(object):
 	@classmethod
 	def info(cls):
 		""" return all info about a word """
+		if cls.soup_data is None:
+			return None
+
 		word = {
 				'keyword': cls.keyword(),
 				'other_keyword': cls.other_keyword(),
