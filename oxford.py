@@ -21,7 +21,6 @@ class Word(object):
 	title_selector = header_selector + ' h2'
 	wordform_selector = header_selector + ' .webtop-g .pos'
 	property_global_selector = header_selector + ' .gram-g'
-	definition_global_selector = header_selector + ' .def'
 
 	br_pronounce_selector = '[class="pron-gs ei-g"] [geo=br] .phon'
 	am_pronounce_selector = '[class="pron-gs ei-g"] [geo=n_am] .phon'
@@ -29,8 +28,8 @@ class Word(object):
 	am_pronounce_audio_selector = '[class="pron-gs ei-g"] [geo=n_am] [data-src-ogg]'
 
 	namespaces_selector = '.h-g > .sn-gs'
-	example_selector = '.h-g > .sn-gs > .sn-g > .x-gs .x'
-	definition_selector = '.h-g > .sn-gs > .sn-g > .def'
+	examples_selector = '.h-g > .sn-gs > .sn-g > .x-gs .x'
+	definitions_selector = '.h-g > .sn-gs > .sn-g > .def'
 
 	extra_examples_selector = '.res-g [title="Extra examples"] .x-gs .x'
 	phrasal_verbs_selector = '.pv-gs a'
@@ -226,12 +225,15 @@ class Word(object):
 
 			br_prefix, br_ipa = britain_pron_tag.text.split('//')[:-1]
 			am_prefix, am_ipa = america_pron_tag.text.split('//')[:-1]
+
+			br_audio_url = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
+			am_audio_url = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
 		except IndexError:
 			br_prefix, br_ipa = None, None
 			am_prefix, am_ipa = None, None
 
-		br_audio_url = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
-		am_audio_url = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
+			br_audio_url = None
+			am_audio_url = None
 
 		return {
 				'britain': {
@@ -285,14 +287,14 @@ class Word(object):
 		""" Return: list of definitions """
 		if cls.soup_data is None:
 			return None
-		return [tag.text for tag in cls.soup_data.select(cls.definition_selector)]
+		return [tag.text for tag in cls.soup_data.select(cls.definitions_selector)]
 
 	@classmethod
 	def examples(cls):
 		""" List of all examples (not categorized in seperate definitions) """
 		if cls.soup_data is None:
 			return None
-		return [tag.text for tag in cls.soup_data.select(cls.example_selector)]
+		return [tag.text for tag in cls.soup_data.select(cls.examples_selector)]
 
 	@classmethod
 	def extra_examples(cls):
