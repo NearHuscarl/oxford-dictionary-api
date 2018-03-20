@@ -253,18 +253,16 @@ def scrap(words, reference=True):
 
 		if exitcode == 1: # Word not found. Skip 1s only
 			time.sleep(1)
-			continue
 		elif exitcode == 2: # Connection error
 			time.sleep(10)
-			continue
 		else: # success
 			if others and reference is True:
 				print('scrap ' + BLUE + 'reference' +  RESET + ' words: ' + GREEN + quote(others) + RESET)
 				scrap(others, reference=False)
 
-		print(MAGENTA + 'cooldown...' + RESET) # cooldown time: 4s
-		if extract_data.elapsed < 4:
-			time.sleep(4 - extract_data.elapsed)
+			print(MAGENTA + 'cooldown...' + RESET) # cooldown time: 4s
+			if extract_data.elapsed < 4:
+				time.sleep(4 - extract_data.elapsed)
 
 def run(filename):
 	""" scrap words from a wordlist in filename """
