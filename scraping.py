@@ -163,10 +163,15 @@ def get_downloaded_words():
 	return {os.path.splitext(file)[0].split('_')[0].lower(): None
 			for file in os.listdir(DEF_PATH) if os.path.isfile(os.path.join(DEF_PATH, file))}
 
-def get_wordlist(filename):
+def get_wordlist(filename, reverse=False):
 	""" get wordlist in current working directory """
 	path = os.path.join(os.getcwd(), filename)
-	return read(path)
+	wordlist = read(path)
+
+	if reverse:
+		wordlist = wordlist[::-1]
+
+	return wordlist
 
 DOWNLOADED_WORDS = get_downloaded_words()
 NOT_FOUND_WORDS = get_not_found_words()
