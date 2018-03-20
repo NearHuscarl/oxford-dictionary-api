@@ -216,8 +216,10 @@ def extract_data(word):
 		print("Downloading audio file of '{}'...".format(word))
 		LOG.info("Downloading audio file of '%s'...", word)
 
-		download(br_audio, AUDIO_PATH)
-		download(am_audio, AUDIO_PATH)
+		if word_data['pronunciations']['britain']['url'] != None:
+			download(br_audio, AUDIO_PATH)
+		if word_data['pronunciations']['america']['url'] != None:
+			download(am_audio, AUDIO_PATH)
 
 		# save word information (definitions, examples, idioms,...)
 		print("saving '{}' in json format to {}...".format(word, DEF_PATH))
