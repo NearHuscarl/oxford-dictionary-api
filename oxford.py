@@ -2,8 +2,6 @@
 
 """ oxford diciontary api """
 
-import os
-import urllib.request
 from http import cookiejar
 
 import requests
@@ -238,15 +236,6 @@ class Word(object):
 					'url': am_audio_url
 					}
 				}
-
-	@classmethod
-	def download_pronunciation_audio(cls, path):
-		""" download britain and american pron audio to path (dir) """
-		br_audio_url = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
-		am_audio_url = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
-
-		urllib.request.urlretrieve(br_audio_url, os.path.join(path, cls.keyword()))
-		urllib.request.urlretrieve(am_audio_url, os.path.join(path, cls.keyword()))
 
 	@classmethod
 	def extract_keyword(cls, link):
