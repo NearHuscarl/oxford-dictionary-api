@@ -163,15 +163,10 @@ def get_downloaded_words():
 	return {os.path.splitext(file)[0].split('_')[0].lower(): None
 			for file in os.listdir(DEF_PATH) if os.path.isfile(os.path.join(DEF_PATH, file))}
 
-def get_wordlist(filename, reverse=False):
+def get_wordlist(filename):
 	""" get wordlist in current working directory """
 	path = os.path.join(os.getcwd(), filename)
-	wordlist = read(path)
-
-	if reverse:
-		wordlist = wordlist[::-1]
-
-	return wordlist
+	return read(path)
 
 DOWNLOADED_WORDS = get_downloaded_words()
 NOT_FOUND_WORDS = get_not_found_words()
@@ -271,10 +266,14 @@ def scrap(words, reference=True):
 			if extract_data.elapsed < 4:
 				time.sleep(4 - extract_data.elapsed)
 
-def run(filename):
+def run(filename, reverse=False):
 	""" scrap words from a wordlist in filename """
 	print('getting wordlist data from {}'.format(os.path.join(os.getcwd(), filename)))
 	words = get_wordlist(filename)
+
+	if reverse:
+		words = words[::-1]
+
 	scrap(words, reference=True)
 
 # vim: nofoldenable
