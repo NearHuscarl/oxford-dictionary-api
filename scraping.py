@@ -255,7 +255,7 @@ def scrap(words, reference=True):
 			print('valid word: ' + GREEN + quote(word) + RESET + '. Ready to ' + BLUE + 'download' + RESET)
 			exitcode, others = extract_data(word)
 
-		if exitcode == 1: # Word not found. Skip 1s only
+		if exitcode == 1: # Word not found. Skip 0.5s only
 			time.sleep(0.5)
 		elif exitcode == 2: # Connection error
 			time.sleep(10)
@@ -264,7 +264,7 @@ def scrap(words, reference=True):
 				print('scrap ' + BLUE + 'reference' +  RESET + ' words: ' + GREEN + quote(others) + RESET)
 				scrap(others, reference=False)
 
-			print(MAGENTA + 'cooldown...' + RESET) # cooldown time: 4s
+			print(MAGENTA + 'cooldown...' + RESET) # cooldown time: 2s
 			if extract_data.elapsed < 2:
 				time.sleep(2 - extract_data.elapsed)
 
