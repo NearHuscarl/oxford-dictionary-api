@@ -1,6 +1,6 @@
 #!/bin/env python
 
-""" oxford diciontary api """
+""" oxford dictionary api """
 
 from http import cookiejar
 
