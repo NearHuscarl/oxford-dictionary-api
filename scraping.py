@@ -256,7 +256,7 @@ def scrap(words, reference=True):
 			exitcode, others = extract_data(word)
 
 		if exitcode == 1: # Word not found. Skip 1s only
-			time.sleep(1)
+			time.sleep(0.5)
 		elif exitcode == 2: # Connection error
 			time.sleep(10)
 		else: # success
