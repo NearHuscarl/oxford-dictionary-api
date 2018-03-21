@@ -45,9 +45,9 @@ def touch(path, content=''):
 		file.write(content)
 
 def settup_logger(name, logfile, level=logging.INFO):
-	""" setup logger. Usage:
+	""" Setup logger. Usage:
 
-	LOG = settup_logger('info', 'scraping.log', level=logging.INFO)
+	LOG = settup_logger('info logging', 'scraping.log', level=logging.INFO)
 
 	LOG.info('info message')
 	LOG.debug('debug message')
@@ -104,7 +104,7 @@ def download(url, directory):
 	urllib.request.urlretrieve(url, path)
 
 def save(word, path):
-	""" write word data in json format with filename is word value """
+	""" write word data in json format with filename is keyword """
 	if word is not None:
 		filename = word['keyword']
 		cache_path = os.path.join(path, filename + '.json')
@@ -180,7 +180,7 @@ def extract_data(word):
 	argument: word to extract data
 	return (statuscode, references)
 
-	status code: 0 on success, 1 on error
+	status code: 0 on success, 1 on word not found error (404), 2 on connection error
 	references: a list of other keywords (same word with different wordform)
 	"""
 	try:
@@ -193,7 +193,7 @@ def extract_data(word):
 		LOG.debug("Requests failed: '%s'", error)
 
 		update_skipped_words(word)
-		return (1, None)
+		return (2, None)
 
 	try:
 		print("Extracting data from '{}'...".format(word))
@@ -265,11 +265,11 @@ def scrap(words, reference=True):
 				scrap(others, reference=False)
 
 			print(MAGENTA + 'cooldown...' + RESET) # cooldown time: 4s
-			if extract_data.elapsed < 4:
-				time.sleep(4 - extract_data.elapsed)
+			if extract_data.elapsed < 2:
+				time.sleep(2 - extract_data.elapsed)
 
 def run(filename, reverse=False):
-	""" scrap words from a wordlist in filename """
+	""" scrap words from the wordlist stored in filename """
 	print('getting wordlist data from {}'.format(os.path.join(os.getcwd(), filename)))
 	words = get_wordlist(filename)
 
