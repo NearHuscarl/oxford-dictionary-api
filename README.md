@@ -1,4 +1,4 @@
-# oxford-dictionary-api
+# Oxford Dictionary API
 
 ## Requirements
 * python3
