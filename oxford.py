@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/bin/env python3
 
 """ oxford dictionary api """
 
@@ -6,6 +6,10 @@ from http import cookiejar
 
 import requests
 from bs4 import BeautifulSoup as soup
+
+class WordNotFound(Exception):
+	""" word not found in dictionary (404 status code) """
+	pass
 
 class BlockAll(cookiejar.CookiePolicy):
 	""" policy to block cookies """
@@ -60,22 +64,15 @@ class Word(object):
 		req = requests.Session()
 		req.cookies.set_policy(BlockAll())
 
-		try:
-			page_html = req.get(cls.get_url(word), timeout=5, headers={'User-agent': 'mother animal'})
-			if page_html.status_code == 200:
-				cls.soup_data = soup(page_html.content, 'html.parser')
-			else:
-				print('Requests failed. Status code: {}'.format(page_html.status_code))
-				cls.soup_data = None
-		except requests.Timeout as error:
-			print('Requests failed. Timeout: {}'.format(error))
-			cls.soup_data = None
+		page_html = req.get(cls.get_url(word), timeout=5, headers={'User-agent': 'mother animal'})
+		if page_html.status_code == 404:
+			raise WordNotFound
+		else:
+			cls.soup_data = soup(page_html.content, 'html.parser')
 
-		if cls.soup_data is None:
-			return
-
-		# remove the unnecessary because sometimes the selector will get false positive results
-		cls.delete('[title="Oxford Collocations Dictionary"]')
+		if cls.soup_data is not None:
+			# remove the unnecessary because sometimes the selector will get false positive results
+			cls.delete('[title="Oxford Collocations Dictionary"]')
 
 	@classmethod
 	def other_results(cls):
