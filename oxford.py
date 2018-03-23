@@ -216,34 +216,28 @@ class Word(object):
 		if cls.soup_data is None:
 			return None
 
+		audio = {
+				'britain': {'prefix': None, 'ipa': None, 'url': None},
+				'america': {'prefix': None, 'ipa': None, 'url': None}
+				}
+
 		try:
 			britain_pron_tag = cls.soup_data.select(cls.br_pronounce_selector)[0]
 			america_pron_tag = cls.soup_data.select(cls.am_pronounce_selector)[0]
 
-			br_prefix, br_ipa = britain_pron_tag.text.split('//')[:-1]
-			am_prefix, am_ipa = america_pron_tag.text.split('//')[:-1]
-
-			br_audio_url = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
-			am_audio_url = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
+			audio['britain']['prefix'], audio['britain']['ipa'] = britain_pron_tag.text.split('//')[:-1]
+			audio['america']['prefix'], audio['america']['ipa'] = america_pron_tag.text.split('//')[:-1]
 		except IndexError:
-			br_prefix, br_ipa = None, None
-			am_prefix, am_ipa = None, None
+			audio['britain']['prefix'] = 'BrE'
+			audio['america']['prefix'] = 'NAmE'
 
-			br_audio_url = None
-			am_audio_url = None
+		try:
+			audio['britain']['url'] = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
+			audio['america']['url'] = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
+		except IndexError:
+			pass
 
-		return {
-				'britain': {
-					'prefix': br_prefix,
-					'ipa': br_ipa,
-					'url': br_audio_url
-				},
-				'america': {
-					'prefix': am_prefix,
-					'ipa': am_ipa,
-					'url': am_audio_url
-					}
-				}
+		return audio
 
 	@classmethod
 	def extract_keyword(cls, link):
