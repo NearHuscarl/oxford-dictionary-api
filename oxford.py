@@ -96,13 +96,13 @@ class Word(object):
 
 		Return: {
 				'All matches': [
-					{'word1': word1, 'keyword1': keyword1, 'wordform1': wordform1},
-					{'word2': word2, 'keyword2': keyword2, 'wordform2': wordform2}
+					{'word1': word1, 'id1': id1, 'wordform1': wordform1},
+					{'word2': word2, 'id2': id2, 'wordform2': wordform2}
 					...
 					]
 				'Phrasal verbs': [
-					{'word1': word1, 'keyword1': keyword1, 'wordform1': wordform1},
-					{'word2': word2, 'keyword2': keyword2, 'wordform2': wordform2}
+					{'word1': word1, 'id1': id1, 'wordform1': wordform1},
+					{'word2': word2, 'id2': id2, 'wordform2': wordform2}
 					...
 					]
 				...
@@ -124,14 +124,14 @@ class Word(object):
 			header = header_tag.text
 
 			other_results = [tag.find_all(text=True) for tag in other_results_tag.select('span')]
-			keywords = [cls.extract_keyword(tag.attrs['href'])
+			ids = [cls.extract_id(tag.attrs['href'])
 					for tag in other_results_tag.select('li a')]
 
 			results = []
-			for other_result, keyword in zip(other_results, keywords):
+			for other_result, id in zip(other_results, ids):
 				result = {}
-				result['text'] = other_result[0].strip()
-				result['keyword'] = keyword
+				result['name'] = other_result[0].strip()
+				result['id'] = id
 
 				try:
 					result['wordform'] = other_result[1].strip()
@@ -145,9 +145,9 @@ class Word(object):
 		return info
 
 	@classmethod
-	def other_keyword(cls):
+	def other_id(cls):
 		""" get other word form (verb, noun...) of a word
-		Return: a list of keywords in other form
+		Return: a list of ids in other form
 
 		Example word: 'man'
 		Return ['man_2', 'man_3']
@@ -155,8 +155,8 @@ class Word(object):
 		if cls.soup_data is None:
 			return None
 
-		word = cls.word()
-		other_keyword = []
+		name = cls.name()
+		other_id = []
 
 		try:
 			rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
@@ -166,24 +166,25 @@ class Word(object):
 		allmatches_tags = rightcolumn_tags.select_one('dd') # get the first dd only
 
 		for allmatches_tag in allmatches_tags.select('li'):
-			other_match = allmatches_tag.select('span')[0].find(text=True).strip() # get first word only
-			if word == other_match:
-				keyword = cls.extract_keyword(allmatches_tag.select('a')[0].attrs['href'])
-				other_keyword.append(keyword)
+			other_name = allmatches_tag.select('span')[0].find(text=True).strip() # get first word only
+			if name == other_name:
+				id = cls.extract_id(allmatches_tag.select('a')[0].attrs['href'])
+				other_id.append(id)
 
-		return other_keyword
+		return other_id
 
 	@classmethod
-	def word(cls):
+	def name(cls):
 		""" get word name """
 		if cls.soup_data is None:
 			return None
 		return cls.soup_data.select(cls.title_selector)[0].text
 
 	@classmethod
-	def keyword(cls):
-		""" get keyword. if a word has definitions in 2 seperate pages (multiple wordform)
-		it will return 'word_1' and 'word_2' depend on which page it's on """
+	def word_id(cls):
+		""" get id of a word. if a word has definitions in 2 seperate pages
+		(multiple wordform) it will return 'word_1' and 'word_2' depend on
+		which page it's on """
 		if cls.soup_data is None:
 			return None
 		return cls.soup_data.select(cls.entry_selector)[0].attrs['id']
@@ -216,34 +217,31 @@ class Word(object):
 		if cls.soup_data is None:
 			return None
 
-		audio = {
-				'britain': {'prefix': None, 'ipa': None, 'url': None},
-				'america': {'prefix': None, 'ipa': None, 'url': None}
-				}
+		britain = {'prefix': None, 'ipa': None, 'url': None}
+		america = {'prefix': None, 'ipa': None, 'url': None}
 
 		try:
 			britain_pron_tag = cls.soup_data.select(cls.br_pronounce_selector)[0]
 			america_pron_tag = cls.soup_data.select(cls.am_pronounce_selector)[0]
 
-			audio['britain']['prefix'], audio['britain']['ipa'] = britain_pron_tag.text.split('//')[:-1]
-			audio['america']['prefix'], audio['america']['ipa'] = america_pron_tag.text.split('//')[:-1]
-		except IndexError:
-			audio['britain']['prefix'] = 'BrE'
-			audio['america']['prefix'] = 'NAmE'
-
-		try:
-			audio['britain']['url'] = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
-			audio['america']['url'] = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
+			britain['prefix'], britain['ipa'] = britain_pron_tag.text.split('//')[:-1]
+			america['prefix'], america['ipa'] = america_pron_tag.text.split('//')[:-1]
 		except IndexError:
 			pass
 
-		return audio
+		try:
+			britain['url'] = cls.soup_data.select(cls.br_pronounce_audio_selector)[0].attrs['data-src-ogg']
+			america['url'] = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
+		except IndexError:
+			pass
+
+		return [britain, america]
 
 	@classmethod
-	def extract_keyword(cls, link):
-		""" get keyword from link
-		Argument: https://abc/definition/keyword
-		Return: keyword
+	def extract_id(cls, link):
+		""" get word id from link
+		Argument: https://abc/definition/id
+		Return: id
 		"""
 		return link.split('/')[-1]
 
@@ -251,22 +249,22 @@ class Word(object):
 	def get_references(cls, tags):
 		""" get info about references to other page
 		Argument: soup.select(<selector>)
-		Return: [{'keyword': <keyword>, 'text': <word>}, {'keyword': <keyword2>, 'text': <word2>}, ...]
+		Return: [{'id': <id>, 'name': <word>}, {'id': <id2>, 'name': <word2>}, ...]
 		"""
 		if cls.soup_data is None:
 			return None
 
 		references = []
 		for tag in tags.select('.xr-gs a'): # see also <external link>
-			keyword = cls.extract_keyword(tag.attrs['href'])
+			id = cls.extract_id(tag.attrs['href'])
 			word = tag.text
-			references.append({'keyword': keyword, 'text': word})
+			references.append({'id': id, 'name': word})
 
 		return references
 
 	@classmethod
-	def reference(cls):
-		""" get global reference """
+	def references(cls):
+		""" get global references """
 		if cls.soup_data is None:
 			return None
 
@@ -303,9 +301,9 @@ class Word(object):
 		phrasal_verbs = []
 		for tag in cls.soup_data.select(cls.phrasal_verbs_selector):
 			phrasal_verb = tag.select('.xh')[0].text
-			keyword = cls.extract_keyword(tag.attrs['href']) # https://abc/definition/keyword -> keyword
+			id = cls.extract_id(tag.attrs['href']) # https://abc/definition/id -> id
 
-			phrasal_verbs.append({'name': phrasal_verb, 'keyword': keyword})
+			phrasal_verbs.append({'name': phrasal_verb, 'id': id})
 
 		return phrasal_verbs
 
@@ -328,7 +326,7 @@ class Word(object):
 					<span class='gram-g'>...</span>    <!-- property (countable, transitive, plural,...) -->
 					<span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
 					<span class='dis-g'>...</span>     <!-- refer to something (of people, of thing,...) -->
-					<span class='def'>...</span>       <!-- definition -->
+					<span class='def'>...</span>       <!-- definition description -->
 					<span class='x-gs'>                <!-- examples -->
 						<span class='x'>               <!-- example -->
 						<span class='x'>               <!-- example -->
@@ -375,12 +373,12 @@ class Word(object):
 				except IndexError:
 					pass
 
-				definition['reference'] = cls.get_references(definition_example_tag)
-				if not definition['reference']:
-					definition.pop('reference', None)
+				definition['references'] = cls.get_references(definition_example_tag)
+				if not definition['references']:
+					definition.pop('references', None)
 
-				try: # sometimes, an idiom just reference to other page without having a definition
-					definition['definition'] = definition_example_tag.select('.def')[0].text
+				try: # sometimes, it just refers to other page without having a definition
+					definition['description'] = definition_example_tag.select('.def')[0].text
 				except IndexError:
 					pass
 
@@ -410,14 +408,14 @@ class Word(object):
 				<span class='sn-g'>                    <!-- definition + examples -->
 					<span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
 					<span class='dis-g'>...</span>     <!-- refer to something (of people, of thing,...) -->
-					<span class='def'>...</span>       <!-- definition -->
+					<span class='def'>...</span>       <!-- definition description -->
 					<span class='x-gs'>                <!-- examples -->
 						<span class='x'>               <!-- example -->
 						<span class='x'>               <!-- example -->
 					</span>
 					<span class='xr-gs'>               <!-- external references -->
-						<a href='../keyword'>...</a>   <!-- reference link -->
-						<a href='../keyword'>...</a>   <!-- reference link -->
+						<a href='../id'>...</a>   <!-- reference link -->
+						<a href='../id'>...</a>   <!-- reference link -->
 					</span>
 				</span>
 				<span class='sn-g'></span>             <!-- definition + examples -->
@@ -443,10 +441,10 @@ class Word(object):
 			for definition_tag in idiom_tag.select('.sn-gs .sn-g'):
 				definition = {}
 
-				try:
-					definition['definition'] = definition_tag.select('.def')[0].text
+				try: # sometimes, it just refers to other page without having a definition
+					definition['description'] = definition_tag.select('.def')[0].text
 				except IndexError:
-					pass # sometimes, an idiom just reference to other page without having a definition
+					pass
 
 				try: # label: (old-fashioned), (informal), (saying)...
 					definition['label'] = definition_tag.select('.label-g')[0].text
@@ -458,14 +456,14 @@ class Word(object):
 				except IndexError:
 					pass
 
-				definition['reference'] = cls.get_references(definition_tag)
-				if not definition['reference']:
-					definition.pop('reference', None)
+				definition['references'] = cls.get_references(definition_tag)
+				if not definition['references']:
+					definition.pop('references', None)
 
 				definition['examples'] = [example_tag.text for example_tag in definition_tag.select('.x')]
 				definitions.append(definition)
 
-			idioms.append({'idiom': idiom, 'definitions': definitions})
+			idioms.append({'name': idiom, 'definitions': definitions})
 
 		return idioms
 
@@ -476,12 +474,12 @@ class Word(object):
 			return None
 
 		word = {
-				'keyword': cls.keyword(),
-				'other_keyword': cls.other_keyword(),
-				'word': cls.word(),
+				'id': cls.word_id(),
+				'similar': cls.other_id(),
+				'name': cls.name(),
 				'wordform': cls.wordform(),
 				'pronunciations': cls.pronunciations(),
-				'reference': cls.reference(),
+				'references': cls.references(),
 				'property': cls.property_global(),
 				'definitions_examples': cls.definitions_examples(),
 				'extra_examples': cls.extra_examples(),
@@ -489,8 +487,8 @@ class Word(object):
 				'other_results': cls.other_results()
 				}
 
-		if not word['reference']:
-			word.pop('reference', None)
+		if not word['references']:
+			word.pop('references', None)
 
 		if not word['property']:
 			word.pop('property', None)
