@@ -71,8 +71,12 @@ class Word(object):
 			cls.soup_data = soup(page_html.content, 'html.parser')
 
 		if cls.soup_data is not None:
-			# remove the unnecessary because sometimes the selector will get false positive results
+			# remove some unnecessary tags to prevent false positive results
 			cls.delete('[title="Oxford Collocations Dictionary"]')
+			cls.delete('[title="British/American"]') # edge case: 'phone'
+			cls.delete('[title="Express Yourself"]')
+			cls.delete('[title="Collocations"]')
+			cls.delete('[title="Word Origin"]')
 
 	@classmethod
 	def other_results(cls):
