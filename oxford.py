@@ -145,7 +145,7 @@ class Word(object):
 		return info
 
 	@classmethod
-	def other_id(cls):
+	def similar(cls):
 		""" get other word form (verb, noun...) of a word
 		Return: a list of ids in other form
 
@@ -181,7 +181,7 @@ class Word(object):
 		return cls.soup_data.select(cls.title_selector)[0].text
 
 	@classmethod
-	def word_id(cls):
+	def id(cls):
 		""" get id of a word. if a word has definitions in 2 seperate pages
 		(multiple wordform) it will return 'word_1' and 'word_2' depend on
 		which page it's on """
@@ -272,11 +272,14 @@ class Word(object):
 		return cls.get_references(header_tag)
 
 	@classmethod
-	def definitions(cls):
+	def definitions(cls, full=False):
 		""" Return: list of definitions """
 		if cls.soup_data is None:
 			return None
-		return [tag.text for tag in cls.soup_data.select(cls.definitions_selector)]
+
+		if not full:
+			return [tag.text for tag in cls.soup_data.select(cls.definitions_selector)]
+		return cls.definition_full()
 
 	@classmethod
 	def examples(cls):
@@ -308,7 +311,7 @@ class Word(object):
 		return phrasal_verbs
 
 	@classmethod
-	def definitions_examples(cls):
+	def definition_full(cls):
 		""" return word definition + corresponding examples
 
 		A word can have a single (None) or multiple namespaces
@@ -353,37 +356,37 @@ class Word(object):
 				namespace = None
 
 			definitions = []
-			definition_example_tags = namespace_tag.select('.sn-g')
+			definition_full_tags = namespace_tag.select('.sn-g')
 
-			for definition_example_tag in definition_example_tags:
+			for definition_full_tag in definition_full_tags:
 				definition = {}
 
 				try: # property (countable, transitive, plural,...)
-					definition['property'] = definition_example_tag.select('.gram-g')[0].text
+					definition['property'] = definition_full_tag.select('.gram-g')[0].text
 				except IndexError:
 					pass
 
 				try: # label: (old-fashioned), (informal), (saying)...
-					definition['label'] = definition_example_tag.select('.label-g')[0].text
+					definition['label'] = definition_full_tag.select('.label-g')[0].text
 				except IndexError:
 					pass
 
 				try: # refer to something (of people, of thing,...)
-					definition['refer'] = definition_example_tag.select('.dis-g')[0].text
+					definition['refer'] = definition_full_tag.select('.dis-g')[0].text
 				except IndexError:
 					pass
 
-				definition['references'] = cls.get_references(definition_example_tag)
+				definition['references'] = cls.get_references(definition_full_tag)
 				if not definition['references']:
 					definition.pop('references', None)
 
 				try: # sometimes, it just refers to other page without having a definition
-					definition['description'] = definition_example_tag.select('.def')[0].text
+					definition['description'] = definition_full_tag.select('.def')[0].text
 				except IndexError:
 					pass
 
 				definition['examples'] = [example_tag.text
-						for example_tag in definition_example_tag.select('.x-gs .x')]
+						for example_tag in definition_full_tag.select('.x-gs .x')]
 
 				definitions.append(definition)
 
@@ -474,14 +477,14 @@ class Word(object):
 			return None
 
 		word = {
-				'id': cls.word_id(),
-				'similar': cls.other_id(),
+				'id': cls.id(),
+				'similar': cls.similar(),
 				'name': cls.name(),
 				'wordform': cls.wordform(),
 				'pronunciations': cls.pronunciations(),
 				'references': cls.references(),
 				'property': cls.property_global(),
-				'definitions_examples': cls.definitions_examples(),
+				'definitions': cls.definitions(full=True),
 				'extra_examples': cls.extra_examples(),
 				'idioms': cls.idioms(),
 				'other_results': cls.other_results()
