@@ -3,3 +3,6 @@ root = true
 [*]
 indent_size = 3
 trim_trailing_whitespace = true
+
+[*.py]
+indent_size = 4
