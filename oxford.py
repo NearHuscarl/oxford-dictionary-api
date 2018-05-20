@@ -149,7 +149,7 @@ class Word(object):
 		return info
 
 	@classmethod
-	def similar(cls):
+	def similars(cls):
 		""" get other word form (verb, noun...) of a word
 		Return: a list of ids in other form
 
@@ -216,6 +216,17 @@ class Word(object):
 			return None
 
 	@classmethod
+	def get_prefix_from_filename(cls, filename):
+		""" get prefix (NAmE or BrE) from audio name when prefix is null """
+		if '__gb' in filename:
+			return 'BrE'
+
+		elif '__us' in filename:
+			return 'NAmE'
+
+		return None
+
+	@classmethod
 	def pronunciations(cls):
 		""" get britain and america pronunciations """
 		if cls.soup_data is None:
@@ -238,6 +249,12 @@ class Word(object):
 			america['url'] = cls.soup_data.select(cls.am_pronounce_audio_selector)[0].attrs['data-src-ogg']
 		except IndexError:
 			pass
+
+		if britain['prefix'] == None:
+			britain['prefix'] = cls.get_prefix_from_filename(britain['url'])
+
+		if america['prefix'] == None:
+			america['prefix'] = cls.get_prefix_from_filename(america['url'])
 
 		return [britain, america]
 
@@ -482,7 +499,7 @@ class Word(object):
 
 		word = {
 				'id': cls.id(),
-				'similar': cls.similar(),
+				'similars': cls.similars(),
 				'name': cls.name(),
 				'wordform': cls.wordform(),
 				'pronunciations': cls.pronunciations(),
