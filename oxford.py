@@ -218,10 +218,10 @@ class Word(object):
 	@classmethod
 	def get_prefix_from_filename(cls, filename):
 		""" get prefix (NAmE or BrE) from audio name when prefix is null """
-		if '__gb' in filename:
+		if '_gb_' in filename:
 			return 'BrE'
 
-		elif '__us' in filename:
+		elif '_us_' in filename:
 			return 'NAmE'
 
 		return None
@@ -250,10 +250,10 @@ class Word(object):
 		except IndexError:
 			pass
 
-		if britain['prefix'] == None:
+		if britain['prefix'] == None and britain['url'] is not None:
 			britain['prefix'] = cls.get_prefix_from_filename(britain['url'])
 
-		if america['prefix'] == None:
+		if america['prefix'] == None and america['url'] is not None:
 			america['prefix'] = cls.get_prefix_from_filename(america['url'])
 
 		return [britain, america]
