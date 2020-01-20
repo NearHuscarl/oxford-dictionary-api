@@ -59,18 +59,6 @@ Word.name()
 'run'
 ```
 
-### Similar
-
-Return other similar word IDs
-
-```python
-Word.similar()
-```
-
-```python
-['run_2']
-```
-
 ### Wordform
 
 Return wordform (verb, noun, adj,...)
@@ -98,23 +86,6 @@ Word.pronunciations()
  {'ipa': 'rʌn',
   'prefix': 'NAmE',
   'url': 'https://www.oxfordlearnersdictionaries.com/media/english/us_pron_ogg/r/run/run__/run__us_1.ogg'}]
-```
-
-### Reference
-
-Return a dictionary of references to other pages with key is word id and value is word or phrase to go to
-
-```python
-Word.references()
-```
-
-```python
-[{'id': 'run_1', 'name': 'Elections'},
- {'id': 'run_2', 'name': 'Committing crime'},
- {'id': 'run_3', 'name': 'Train and bus travel'},
- {'id': 'run_4', 'name': 'Exercise'},
- {'id': 'run_5', 'name': 'Driving'},
- {'id': 'run_6', 'name': 'How machines work'}]
 ```
 
 ### Definition
@@ -295,73 +266,6 @@ Word.definitions(full=True)
  ...]
 ```
 
-### Extra Examples
-
-Return extra examples (not belong to any particular definitons)
-
-```python
-Word.extra_examples()
-```
-
-```python
-['He hopes to run for president in 2016.',
- 'He just wanted to run away and hide.',
- 'He ran headlong into an enemy patrol.',
- 'He ran out of the house.',
- 'He ran unsuccessfully for the Senate in New York.',
- 'He was given two twelve-month sentences to run concurrently.',
- 'In many respects his poetical development had run parallel to Wordsworth’s.',
- 'John can run very fast.',
- 'Local buses run regularly to and from the school.',
- 'Our car only runs on unleaded petrol.',
- 'She ran quickly downstairs.',
- 'She turned and ran blindly down the street.',
- 'Stop trying to run my life for me.',
- 'The engine was running very smoothly.',
- 'The group is run independently of college authorities.',
- 'The programme will be jointly run with NASA in the US.',
- 'The railway line runs right past the house.',
- 'The road and the canal run parallel to each other.',
- 'The road runs alongside the canal.',
- 'The school is jointly run with the local parish.',
- 'The train was running late, as usual.',
- 'The two experiments are run in parallel.',
- 'Things ran very smoothly for a while.',
- 'We soon had the sound system up and running.',
- '(in stories) Sharon ran as fast as her legs could carry her.',
- 'Alan was running for a bus when he slipped on some ice.',
- 'Billy turned the corner and ran headlong into Mrs Bradley.',
- 'Don’t run away! I only want to talk to you!',
- 'He claimed that 95 per cent of trains run on time.',
- 'He tried to run the restaurant himself, but soon got into financial '
- 'difficulties.',
- 'I like to go running in the mornings before work.',
- 'I ran four miles today.',
- 'I’ve spent the whole day running around after the kids.',
- 'It is a small, privately run hotel.',
- 'Our van runs on diesel.',
- 'Quick— run for it!',
- 'Run after her and tell her she’s forgotten her bag.',
- 'She ran quickly up the stairs.',
- 'Terrified, he ran all the way home.',
- 'The ball hit the hole and ran past.',
- 'The boy went running off to get the ball.',
- 'The buses run every thirty minutes.',
- 'The college runs several English classes for adults.',
- 'The course teaches some of the skills you need to set up and run a business.',
- 'The office had never been so well run.',
- 'The old tramlines are still there but no trams run on them now.',
- 'The sledge ran smoothly over the snow.',
- 'They ran a series of lectures on the subject.',
- 'They’ve seen us! Run for your life!',
- 'Try to run round the block a few times every morning.',
- 'Volunteer counsellors run a 24-hour helpline.',
- 'What applications were you running when the problem occurred?',
- 'When does the London Underground stop running at night?',
- 'Which operating system have you got running?',
- 'Who is running the event?',
- 'Your nose is running.']
-```
 
 ### Idiom
 
@@ -372,31 +276,28 @@ Word.idioms()
 ```
 
 ```python
-[{'definitions': [{'description': 'a situation in which somebody only just '
-                                  'wins or loses, for example in a competition '
-                                  'or an election',
-                   'examples': ['Mr Taylor’s election defeat was a close-run '
-                                'thing.',
-                                'The invasion never happened but it was a '
-                                'close-run thing.']}],
-  'name': 'a close-run thing'},
- {'definitions': [{'description': 'to be pleased to do what somebody wants',
+[{'definitions': [{'description': 'to be pleased to do what somebody wants',
                    'examples': ['She knew she had only to call and he would '
                                 'come running.']}],
-  'name': 'come running'},
- {'definitions': [{'description': 'to start doing something and continue very '
-                                  'quickly and successfully',
-                   'examples': [],
-                   'label': '(informal)'}],
-  'name': 'hit the ground running'},
+  'name': 'come running',
+  'summary': {}},
  {'definitions': [{'description': 'to run in order to escape from '
                                   'somebody/something',
                    'examples': []}],
-  'name': 'run for it'},
+  'name': 'run for it',
+  'summary': {}},
+ {'definitions': [{'description': 'to treat somebody badly and not worry about '
+                                  'their feelings',
+                   'examples': []}],
+  'name': 'run roughshod over somebody',
+  'summary': {'label': '(US English usually)'}},
  {'definitions': [{'description': 'working fully and correctly',
                    'examples': ['It will be a lot easier when we have the '
-                                'database up and running.']}],
-  'name': 'up and running'}]
+                                'database up and running.',
+                                'We soon had the sound system up and '
+                                'running.']}],
+  'name': 'up and running',
+  'summary': {}}]
 ```
 
 ### Other results
@@ -449,12 +350,10 @@ Word.info()
 
 ```python
 # Display the following info:
-# word ID
+# word id
 # wordform
 # pronunciations
-# reference
 # definitions + examples
-# extra_examples
 # idioms
 # other_results
 ```

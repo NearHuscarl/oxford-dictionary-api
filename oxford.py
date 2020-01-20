@@ -25,22 +25,23 @@ class Word(object):
     entry_selector = '#entryContent > .entry'
     header_selector = '.top-container'
 
-    title_selector = header_selector + ' h2'
-    wordform_selector = header_selector + ' .webtop-g .pos'
-    property_global_selector = header_selector + ' .gram-g'
+    title_selector = header_selector + ' .headword'
+    wordform_selector = header_selector + ' .pos'
+    property_global_selector = header_selector + ' .grammar'
 
-    br_pronounce_selector = '[class="pron-gs ei-g"] [geo=br] .phon'
-    am_pronounce_selector = '[class="pron-gs ei-g"] [geo=n_am] .phon'
-    br_pronounce_audio_selector = '[class="pron-gs ei-g"] [geo=br] [data-src-ogg]'
-    am_pronounce_audio_selector = '[class="pron-gs ei-g"] [geo=n_am] [data-src-ogg]'
+    br_pronounce_selector = '[geo=br] .phon'
+    am_pronounce_selector = '[geo=n_am] .phon'
+    br_pronounce_audio_selector = '[geo=br] [data-src-ogg]'
+    am_pronounce_audio_selector = '[geo=n_am] [data-src-ogg]'
 
-    namespaces_selector = '.h-g > .sn-gs'
-    examples_selector = '.h-g > .sn-gs > .sn-g > .x-gs .x'
-    definitions_selector = '.h-g > .sn-gs > .sn-g > .def'
+    definition_body_selector = '.senses_multiple'
+    namespaces_selector = '.senses_multiple > .shcut-g'
+    examples_selector = '.senses_multiple .sense > .examples .x'
+    definitions_selector = '.senses_multiple .sense > .def'
 
     extra_examples_selector = '.res-g [title="Extra examples"] .x-gs .x'
-    phrasal_verbs_selector = '.pv-gs a'
-    idioms_selector = '.idm-gs > .idm-g'
+    phrasal_verbs_selector = '.phrasal_verb_links a'
+    idioms_selector = '.idioms > .idm-g'
 
     other_results_selector = '#rightcolumn #relatedentries'
 
@@ -85,22 +86,6 @@ class Word(object):
     def other_results(cls):
         """ get similar words, idioms, phrases...
 
-        Sample html:
-            <div id='relatedentries'>
-                <dt>All matches</dt>
-                <dd>
-                    <a href='link'>
-                        <span>word<pos>wordform</pos></span>
-                    </a>
-                    <a href='link'>...</a>
-                    <a href='link'>...</a>
-                </dd>
-                <dt>All matches</dt>
-                <dd>..</dd>
-                <dt>Phrasal verbs</dt>
-                <dd>..</dd>
-            </div>
-
         Return: {
                 'All matches': [
                     {'word1': word1, 'id1': id1, 'wordform1': wordform1},
@@ -129,19 +114,26 @@ class Word(object):
         # loop each other result table
         for header_tag, other_results_tag in zip(header_tags, other_results_tags):
             header = header_tag.text
+            other_results = []
 
-            other_results = [tag.find_all(text=True) for tag in other_results_tag.select('span')]
+            for item_tag in other_results_tag.select('li'):
+                names = item_tag.select('span')[0].find_all(text=True, recursive=False)
+                wordform_tag = item_tag.select('pos')
+                names.append(wordform_tag[0].text if len(wordform_tag) > 0 else '')
+                other_results.append(names)
+
+            other_results = list(filter(None, other_results))  # remove empty list
             ids = [cls.extract_id(tag.attrs['href'])
                    for tag in other_results_tag.select('li a')]
 
             results = []
             for other_result, id in zip(other_results, ids):
                 result = {}
-                result['name'] = other_result[0].strip()
+                result['name'] = ' '.join(list(map(lambda x: x.strip(), other_result[0:-1])))
                 result['id'] = id
 
                 try:
-                    result['wordform'] = other_result[1].strip()
+                    result['wordform'] = other_result[-1].strip()
                 except IndexError:
                     pass
 
@@ -150,35 +142,6 @@ class Word(object):
             info.append({header: results})
 
         return info
-
-    @classmethod
-    def similars(cls):
-        """ get other word form (verb, noun...) of a word
-        Return: a list of ids in other form
-
-        Example word: 'man'
-        Return ['man_2', 'man_3']
-        """
-        if cls.soup_data is None:
-            return None
-
-        name = cls.name()
-        other_id = []
-
-        try:
-            rightcolumn_tags = cls.soup_data.select(cls.other_results_selector)[0]
-        except IndexError:  # dont have other match table
-            return []
-
-        allmatches_tags = rightcolumn_tags.select_one('dd')  # get the first dd only
-
-        for allmatches_tag in allmatches_tags.select('li'):
-            other_name = allmatches_tag.select('span')[0].find(text=True).strip()  # get first word only
-            if name == other_name:
-                id = cls.extract_id(allmatches_tag.select('a')[0].attrs['href'])
-                other_id.append(id)
-
-        return other_id
 
     @classmethod
     def name(cls):
@@ -242,8 +205,10 @@ class Word(object):
             britain_pron_tag = cls.soup_data.select(cls.br_pronounce_selector)[0]
             america_pron_tag = cls.soup_data.select(cls.am_pronounce_selector)[0]
 
-            britain['prefix'], britain['ipa'] = britain_pron_tag.text.split('//')[:-1]
-            america['prefix'], america['ipa'] = america_pron_tag.text.split('//')[:-1]
+            britain['ipa'] = britain_pron_tag.text
+            britain['prefix'] = 'BrE'
+            america['ipa'] = america_pron_tag.text
+            america['prefix'] = 'nAmE'
         except IndexError:
             pass
 
@@ -279,7 +244,7 @@ class Word(object):
             return None
 
         references = []
-        for tag in tags.select('.xr-gs a'):  # see also <external link>
+        for tag in tags.select('.xrefs a'):  # see also <external link>
             id = cls.extract_id(tag.attrs['href'])
             word = tag.text
             references.append({'id': id, 'name': word})
@@ -313,13 +278,6 @@ class Word(object):
         return [tag.text for tag in cls.soup_data.select(cls.examples_selector)]
 
     @classmethod
-    def extra_examples(cls):
-        """ get extra examples """
-        if cls.soup_data is None:
-            return None
-        return [tag.text for tag in cls.soup_data.select(cls.extra_examples_selector)]
-
-    @classmethod
     def phrasal_verbs(cls):
         """ get phrasal verbs list (verb only) """
         if cls.soup_data is None:
@@ -335,6 +293,57 @@ class Word(object):
         return phrasal_verbs
 
     @classmethod
+    def _parse_definition(cls, parent_tag):
+        """ return word definition + corresponding examples
+
+        A word can have a single (None) or multiple namespaces
+        Each namespace can have one or many definitions
+        Each definitions can have one, many or no examples
+
+        Some words can have specific property
+        (transitive/intransitive/countable/uncountable/singular/plural...)
+        A verb can have phrasal verbs
+        """
+        if cls.soup_data is None:
+            return None
+
+        definition = {}
+
+        try:  # property (countable, transitive, plural,...)
+            definition['property'] = parent_tag.select('.grammar')[0].text
+        except IndexError:
+            pass
+
+        try:  # label: (old-fashioned), (informal), (saying)...
+            definition['label'] = parent_tag.select('.labels')[0].text
+        except IndexError:
+            pass
+
+        try:  # refer to something (of people, of thing,...)
+            definition['refer'] = parent_tag.select('.dis-g')[0].text
+        except IndexError:
+            pass
+
+        definition['references'] = cls.get_references(parent_tag)
+        if not definition['references']:
+            definition.pop('references', None)
+
+        try:  # sometimes, it just refers to other page without having a definition
+            definition['description'] = parent_tag.select('.def')[0].text
+        except IndexError:
+            pass
+
+        definition['examples'] = [example_tag.text
+                                  for example_tag in parent_tag.select('.examples .x')]
+
+        definition['extra_example'] = [
+            example_tag.text
+            for example_tag in parent_tag.select('[unbox=extra_examples] .examples .unx')
+        ]
+
+        return definition
+
+    @classmethod
     def definition_full(cls):
         """ return word definition + corresponding examples
 
@@ -345,76 +354,43 @@ class Word(object):
         Some words can have specific property
         (transitive/intransitive/countable/uncountable/singular/plural...)
         A verb can have phrasal verbs
-
-        Sample html:
-            <span class='sn-gs'>                       <!-- namespace + definitions + examples -->
-                <span class='shcut'></span>            <!-- namespace -->
-                <span class='sn-g'>                    <!-- definition + examples -->
-                    <span class='gram-g'>...</span>    <!-- property (countable, transitive, plural,...) -->
-                    <span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
-                    <span class='dis-g'>...</span>     <!-- refer to something (of people, of thing,...) -->
-                    <span class='def'>...</span>       <!-- definition description -->
-                    <span class='x-gs'>                <!-- examples -->
-                        <span class='x'>               <!-- example -->
-                        <span class='x'>               <!-- example -->
-                    </span>
-                </span>
-                <span class='sn-g'></span>             <!-- definition + examples -->
-                <span class='sn-g'></span>             <!-- definition + examples -->
-            </span>
-            <span class='sn-gs'></span>                <!-- namespace + definitions + examples -->
-            <span class='sn-gs'></span>                <!-- namespace + definitions + examples -->
         """
         if cls.soup_data is None:
             return None
 
-        namespace_tags = cls.soup_data.select(cls.namespaces_selector)  # sn-gs
+        namespace_tags = cls.soup_data.select(cls.namespaces_selector)
 
         info = []
         for namespace_tag in namespace_tags:
             try:
-                namespace = namespace_tag.select('.shcut')[0].text
+                namespace = namespace_tag.select('h2.shcut')[0].text
             except IndexError:
                 # some word have similar definitions grouped in a multiple namespaces (time)
                 # some do not, and only have one namespace (woman)
                 namespace = None
 
             definitions = []
-            definition_full_tags = namespace_tag.select('.sn-g')
+            definition_full_tags = namespace_tag.select('.sense')
 
             for definition_full_tag in definition_full_tags:
-                definition = {}
-
-                try:  # property (countable, transitive, plural,...)
-                    definition['property'] = definition_full_tag.select('.gram-g')[0].text
-                except IndexError:
-                    pass
-
-                try:  # label: (old-fashioned), (informal), (saying)...
-                    definition['label'] = definition_full_tag.select('.label-g')[0].text
-                except IndexError:
-                    pass
-
-                try:  # refer to something (of people, of thing,...)
-                    definition['refer'] = definition_full_tag.select('.dis-g')[0].text
-                except IndexError:
-                    pass
-
-                definition['references'] = cls.get_references(definition_full_tag)
-                if not definition['references']:
-                    definition.pop('references', None)
-
-                try:  # sometimes, it just refers to other page without having a definition
-                    definition['description'] = definition_full_tag.select('.def')[0].text
-                except IndexError:
-                    pass
-
-                definition['examples'] = [example_tag.text
-                                          for example_tag in definition_full_tag.select('.x-gs .x')]
-
+                definition = cls._parse_definition(definition_full_tag)
                 definitions.append(definition)
 
             info.append({'namespace': namespace, 'definitions': definitions})
+
+        # no namespace. all definitions is global
+        if len(info) == 0:
+            info.append({'namespace': '__GLOBAL__', 'definitions': []})
+            def_body_tags = cls.soup_data.select(cls.definition_body_selector)
+
+            definitions = []
+            definition_full_tags = def_body_tags[0].select('.sense')
+
+            for definition_full_tag in definition_full_tags:
+                definition = cls._parse_definition(definition_full_tag)
+                definitions.append(definition)
+
+            info[0]['definitions'] = definitions
 
         return info
 
@@ -425,31 +401,6 @@ class Word(object):
         Idioms dont have namespace like regular definitions
         Each idioms have one or more definitions
         Each definitions can have one, many or no examples
-
-        Sample html:
-            <span class='idm-g'>                       <!-- idiom + definitions + examples -->
-                <span class='idm-l'>                   <!-- idiom -->
-                    <span class='idm'>...</span>
-                    <span class='idm'>...</span>
-                </span>
-                <span class='sn-g'>                    <!-- definition + examples -->
-                    <span class='label-g'>...</span>   <!-- label (old-fashioned, informal, saying,...) -->
-                    <span class='dis-g'>...</span>     <!-- refer to something (of people, of thing,...) -->
-                    <span class='def'>...</span>       <!-- definition description -->
-                    <span class='x-gs'>                <!-- examples -->
-                        <span class='x'>               <!-- example -->
-                        <span class='x'>               <!-- example -->
-                    </span>
-                    <span class='xr-gs'>               <!-- external references -->
-                        <a href='../id'>...</a>   <!-- reference link -->
-                        <a href='../id'>...</a>   <!-- reference link -->
-                    </span>
-                </span>
-                <span class='sn-g'></span>             <!-- definition + examples -->
-                <span class='sn-g'></span>             <!-- definition + examples -->
-            </span>
-            <span class='idm-g'></span>                <!-- idiom + definitions + examples -->
-            <span class='idm-g'></span>                <!-- idiom + definitions + examples -->
         """
         idiom_tags = cls.soup_data.select(cls.idioms_selector)
 
@@ -463,9 +414,25 @@ class Word(object):
             except IndexError:
                 idiom = idiom_tag.select('.idm')[0].text
 
+            global_definition = {}
+
+            try:  # label: (old-fashioned), (informal), (saying)...
+                global_definition['label'] = idiom_tag.select('.labels')[0].text
+            except IndexError:
+                pass
+
+            try:  # refer to something (of people, of thing,...)
+                global_definition['refer'] = idiom_tag.select('.dis-g')[0].text
+            except IndexError:
+                pass
+
+                global_definition['references'] = cls.get_references(idiom_tag)
+            if not global_definition['references']:
+                global_definition.pop('references', None)
+
             definitions = []
             # one idiom can have multiple definitions, each can have multiple examples or no example
-            for definition_tag in idiom_tag.select('.sn-gs .sn-g'):
+            for definition_tag in idiom_tag.select('.sense'):
                 definition = {}
 
                 try:  # sometimes, it just refers to other page without having a definition
@@ -474,7 +441,7 @@ class Word(object):
                     pass
 
                 try:  # label: (old-fashioned), (informal), (saying)...
-                    definition['label'] = definition_tag.select('.label-g')[0].text
+                    definition['label'] = definition_tag.select('.labels')[0].text
                 except IndexError:
                     pass
 
@@ -490,7 +457,7 @@ class Word(object):
                 definition['examples'] = [example_tag.text for example_tag in definition_tag.select('.x')]
                 definitions.append(definition)
 
-            idioms.append({'name': idiom, 'definitions': definitions})
+            idioms.append({'name': idiom, 'summary': global_definition, 'definitions': definitions})
 
         return idioms
 
@@ -502,20 +469,14 @@ class Word(object):
 
         word = {
             'id': cls.id(),
-            'similars': cls.similars(),
             'name': cls.name(),
             'wordform': cls.wordform(),
             'pronunciations': cls.pronunciations(),
-            'references': cls.references(),
             'property': cls.property_global(),
             'definitions': cls.definitions(full=True),
-            'extra_examples': cls.extra_examples(),
             'idioms': cls.idioms(),
             'other_results': cls.other_results()
         }
-
-        if not word['references']:
-            word.pop('references', None)
 
         if not word['property']:
             word.pop('property', None)
@@ -527,5 +488,3 @@ class Word(object):
             word['phrasal_verbs'] = cls.phrasal_verbs()
 
         return word
-
-# vim: nofoldenable
