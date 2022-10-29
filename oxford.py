@@ -35,6 +35,7 @@ class Word(object):
     am_pronounce_audio_selector = '[geo=n_am] [data-src-ogg]'
 
     definition_body_selector = '.senses_multiple'
+    definition_body_selector_single = '.sense_single'
     namespaces_selector = '.senses_multiple > .shcut-g'
     examples_selector = '.senses_multiple .sense > .examples .x'
     definitions_selector = '.senses_multiple .sense > .def'
@@ -382,13 +383,16 @@ class Word(object):
         if len(info) == 0:
             info.append({'namespace': '__GLOBAL__', 'definitions': []})
             def_body_tags = cls.soup_data.select(cls.definition_body_selector)
+            if len(def_body_tags) == 0:
+                def_body_tags = cls.soup_data.select(cls.definition_body_selector_single)
 
             definitions = []
-            definition_full_tags = def_body_tags[0].select('.sense')
+            for def_body_tag in def_body_tags:
+                definition_full_tags = def_body_tag.select('.sense')
 
-            for definition_full_tag in definition_full_tags:
-                definition = cls._parse_definition(definition_full_tag)
-                definitions.append(definition)
+                for definition_full_tag in definition_full_tags:
+                    definition = cls._parse_definition(definition_full_tag)
+                    definitions.append(definition)
 
             info[0]['definitions'] = definitions
 
@@ -426,7 +430,7 @@ class Word(object):
             except IndexError:
                 pass
 
-                global_definition['references'] = cls.get_references(idiom_tag)
+            global_definition['references'] = cls.get_references(idiom_tag)
             if not global_definition['references']:
                 global_definition.pop('references', None)
 
